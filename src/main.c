@@ -68,11 +68,31 @@ ChsFields parse_chs(const u8 chs[CHS_SIZE])
 
 static u8 block_buf[BLOCK_SIZE];
 
+static void dump_block_buf(void)
+{
+    for (size_t i = 0; i < BLOCK_SIZE; ++i) {
+        printf("%02X ", block_buf[i]);
+
+        if (((i + 1) % 16) == 0)
+            printf("\n");
+    }
+}
+
 static inline u16 get_u16_le(const u8 data[], const size_t idx)
 {
-    const u8 lo = data[idx];
-    const u8 hi = data[idx + 1];
-    return ((u16)hi << 8) | lo;
+    const u16 lo = data[idx];
+    const u16 hi = data[idx + 1];
+    return (hi << 8) | lo;
+}
+
+static inline u32 get_u32_le(const u8 data[], const size_t idx)
+{
+    const u32 a = data[idx];
+    const u32 b = data[idx + 1];
+    const u32 c = data[idx + 2];
+    const u32 d = data[idx + 3];
+
+    return (d << 24) | (c << 16) | (b << 8) | a;
 }
 
 FILE *file = nullptr;
@@ -92,21 +112,29 @@ static size_t load_block(const size_t block_addr)
 
 static void parse_fat32(const PartitionEntry *entry)
 {
+    load_block(entry->start);
+
+    printf("Bytes per logical sector:    %u\n", get_u16_le(block_buf, 0x00));
+    printf("Logical sectors per cluster: %u\n", block_buf[0x02]);
+    printf("Reserved logical sectors:    %u\n", get_u16_le(block_buf, 0x03));
+    printf("Number of FATs:              %u\n", block_buf[0x05]);
+    printf("Root directory entries:      %u\n", get_u16_le(block_buf, 0x06));
+    printf("Total logical sectors:       %u\n", get_u16_le(block_buf, 0x08));
+    printf("Media descriptor:            %u\n", block_buf[0x0A]);
+    printf("Logical sectors per FAT:     %u\n", get_u16_le(block_buf, 0x0B));
+    printf("Physical sectors per track:  %u\n", get_u16_le(block_buf, 0x0D));
+    printf("Number of heads:             %u\n", get_u16_le(block_buf, 0x0F));
+    printf("Hidden sectors:              %u\n", get_u32_le(block_buf, 0x11));
+    printf("Large total logical sectors: %u\n", get_u32_le(block_buf, 0x15));
+
     printf("Contents: \n");
     printf("\n");
 
-    for (size_t b = 0; b < 2; ++b) {
-        const size_t len = load_block(entry->start + b);
-
-        for (size_t i = 0; i < len; ++i) {
-            printf("%02X ", block_buf[i]);
-
-            if (((i + 1) % 16) == 0)
-                printf("\n");
-        }
-
-        printf("\n");
-    }
+    // for (size_t b = 0; b < 2; ++b) {
+    //     load_block(entry->start + b);
+    // dump_block_buf();
+    // printf("\n");
+    // }
 }
 
 int main(void)
