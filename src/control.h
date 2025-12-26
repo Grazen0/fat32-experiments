@@ -1,5 +1,5 @@
-#ifndef AOC_LIB_MACROS_H
-#define AOC_LIB_MACROS_H
+#ifndef FAT32_EXPERIMENTS_MACROS_H
+#define FAT32_EXPERIMENTS_MACROS_H
 
 #include <stdio.h>
 #include <stdlib.h>

@@ -1,4 +1,4 @@
-TARGET_EXEC := fat32
+TARGET_EXEC := fat32_experiments
 
 BUILD_DIR := ./build
 SRC_DIRS := ./src
